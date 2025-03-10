@@ -1,0 +1,113 @@
+
+\documentclass[11pt]{article}
+
+\usepackage{sectsty}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+
+\newcommand{\logl}{\ell}
+\newcommand{\vect}[1]{\mathbf{#1}}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\title{ Title}
+\author{ Author }
+\date{\today}
+
+\begin{document}
+\maketitle	
+% \pagebreak
+
+% Optional TOC
+% \tableofcontents
+% \pagebreak
+
+%--Paper--
+
+\section{Section 1}
+
+Incomplete data log likelihood
+\begin{align*}
+    \log{\mathcal{L}}(\theta) &= \logl(\theta) \\
+                              &= \log(p(X|\theta))\\
+                              &= \log(\sum\limits_{i=1}^{\vert S(X)\vert} p(S(X)_i|\theta))\\
+                              &= \log(\sum\limits_{i=1}^{\vert S(X)\vert} \prod\limits_{j=1}^{\vert S(X)_i\vert} p(T_{ij}|\theta))\\
+\end{align*}
+Where:
+\begin{itemize}
+    \item $X$ is the actual text random variable (RV). This is the only RV we observe.
+
+    \item $S$ is a deterministic function mapping $X$ to the list of all tokenizations of $X$ possible under a vocabulary $\mathcal{V}$. 
+        Note that the number of tokens in the $k^{th}$ tokenization of $X$ (i.e. $\vert S(X)_k \vert$) may or may not be equal to the number of tokens in a different tokenization of $X$. 
+        This is of course because the number of characters in each token of tokenizations can be much different.
+
+
+    \item Each tokenization, $S(X)_i \;\; i \in [1, \vert S(X) \vert ]$, is a sequence of RVs, $T_{ij} \;\; j \in [1,\vert S(X)_i \vert ] $, which correspond to the indeces of the tokens in the vocabulary $\mathcal{V}$ that make up the tokenization. 
+        Thus, $T_{ij} \in [1, \vert \mathcal{V} \vert]$.
+\end{itemize}
+\noindent It is important to realize that $T_{ij}$ is completely dependent on the observed variable $X$. 
+In other words, if $X$ is known then $T_{ij}$ can be completely determinded by the use of the function $S$.
+However, what we need is to find the setting of $\theta$ to maximize this log-likelihood. 
+In our tokenization model $ p(T_{ij}|\theta) = \theta_{T_{ij}}$.
+If we view the $T_{ij}$ variables as hidden variable, we can use EM to maximize this log-likelihood.
+
+To use the EM algorithm, though, we must define a joint distribution $p(X, Z| \theta)$ and then derive the posterior distribution $p(Z|X, \theta)$.
+Our joint distribution will be very similar to the marginal $p(X|\theta)$, but walking through the details will help clarify the posterior.
+
+
+$\vect{Z}$ is a sequence of latent token variables, $Z_j\,\, j \in [0, \infty]$.
+Each $\vect{z}_j$ is a scalar RV in $[1,\vert \mathcal{V}\vert]$ indicating which token in $\mathcal{V}$ was generated at
+timestep $j$. This differs from $S(X)_i$ in that $S(X)_i$ represents a unique full tokenization of the text $X$ and can therefore only take on $\vert S(X)\vert$ values.
+$Z_j$ on the other hand, is representing a single token and can therefore take on $\vert \mathcal{V}\vert$ values.
+
+\vspace{3mm}
+
+Complete data log likelihood
+
+\begin{align*}
+\log{\mathcal{L}}(\theta) &= \logl(\theta) \\
+                              &= \log(p(X|\theta))\\
+                              &= \log(\sum\limits_{i=1}^{\vert S(X)\vert} \prod\limits_{j=1}^{\vert S(X)_i\vert}  p(T_{ij}|\theta))\\
+                              &= \log(T_{i1}\sum\limits_{i=1}^{\vert S(X)\vert} \prod\limits_{j=2}^{\vert S(X)_i\vert} p(T_{ij}|\theta))\\
+\end{align*}
+
+
+Thus, the joint distribution $p(S(X)_i, \vect{Z}|\theta)$ is zero everywhere that $T_{ij} \neq Z_j$.
+As such, 
+\begin{align*}
+    \sum\limits_{\vect{Z}}\sum\limits_{i=1}^{\vert S(X)\vert} p(S(X)_i, \vect{Z}|\theta) &= \sum\limits_{\vect{Z}} \sum\limits_{i=1}^{\vert S(X)\vert}p(S(X)_i, \vect{Z} = S(X)_i)  |\theta)\\
+                                                                                         &= \sum\limits_{j=1}^\infty \sum\limits_{i=1}^{\vert S(X)\vert}p(T_ij, Z_j|\theta)
+\end{align*}
+
+and therefore,
+
+\begin{align*}
+\log{\mathcal{L}}(\theta) &= \log(\sum\limits_{i} p(S(X)_i|\theta))\\
+                        &= \log(\sum\limits_{i}\sum\limits_{\vect{Z}} p(S(X)_i, \vect{Z}|\theta))\\
+                        &= \log(\sum\limits_{\vect{Z}} p(S(X) = C(\vect{Z}), \vect{Z}|\theta))\\
+                        &= \log(\sum\limits_{i,j} p(x_{ij} = C(\vect{Z})_{ij}, \vect{Z}_{i}|\theta))\\
+\end{align*}
+
+This merely states that when summing over all values of $\vect{Z}$ non-zero entries in the joint distribution will only occur when $Z$ exactly corresponds 
+to the original tokenizations derived when calculating $S(X)$.
+
+As you may notice, the introduction of the hidden variable $\vect{Z}$ is merely a convenience. 
+It serves to be precise in discerning between tokenization sequences vs. individual tokens, as we are now clearly summing over the time steps and tokens of $\vect{Z}$.
+It also allows for a clearer application of 
+the EM algorithm since there are now observed ($X$) and hidden ($\vect{Z}$) variables.
+
+\pagebreak
+\section{Section 2}
+Lorem Ipsum \\
+
+%--/Paper--
+
+\end{document}
